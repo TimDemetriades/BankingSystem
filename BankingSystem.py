@@ -56,6 +56,8 @@ class Banking_System:
             elif choice == '0':
                 print('\nBye!')
                 sys.exit()
+            else:
+                print('Please enter either 1, 2, or 0 to exit.')
 
 banking_system = Banking_System()
 
