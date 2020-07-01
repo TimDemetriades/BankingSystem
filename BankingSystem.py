@@ -11,33 +11,46 @@ def randint_with_n_digits(n):
     return randint(range_start, range_end)
 
 class Banking_System:
-    def __init__(self):
-        self.card_number = None
-        self.card_PIN = None
-        self.balance = 0
+    accounts = {}       # dict of accounts created
+    current_user = ""   # holds account_identifier after user logs in    
+    BIN = 400000        # Bank Identification Number
 
     def create_account(self):
-        BIN = 400000        # Bank Identification Number
-        account_identifier = randint_with_n_digits(9)      
-        checksum = randint_with_n_digits(1)
-        self.card_number = str(BIN) + str(account_identifier) + str(checksum)
+        user_data = {}  # dict to insert into accounts
 
-        self.card_PIN =  str(randint_with_n_digits(4))
+        self.account_identifier = str(randint_with_n_digits(9))      
+        checksum = str(randint_with_n_digits(1))
+        card_number = str(self.BIN) + self.account_identifier + checksum
+        card_PIN =  str(randint_with_n_digits(4))
+
+        user_data[self.account_identifier] = {
+            'Card Number': card_number,
+            'PIN': card_PIN,
+            'Balance': 0
+        }
+
+        Banking_System.accounts.update(user_data)       # add new account to accounts dict
 
         print('\nYour card has been created')
-        print(f'Your card number:\n{self.card_number}')
-        print(f'Your card PIN:\n{self.card_PIN}\n')
+        print(f'Your card number:\n{card_number}')
+        print(f'Your card PIN:\n{card_PIN}\n')
     
     def log_into_account(self):
-        if self.card_number == None or self.card_PIN == None:
+        if Banking_System.accounts == {}:       # if no accounts have been made yet
             print('\nYou must create an account first.\n')
         else:
             entered_card = input('\nEnter your card number:\n')
             entered_PIN = input('Enter your PIN:\n')
 
-            if entered_card == self.card_number and entered_PIN == self.card_PIN:
-                print('\nYou have successfully logged in!\n')
-                self.account()
+            account = entered_card[6:15]    # this should match the account_identifier of a card number (digits 6 to 14) 
+
+            if account in Banking_System.accounts:     # if account exists
+                if Banking_System.accounts[account]['Card Number'] == entered_card and Banking_System.accounts[account]['PIN'] == entered_PIN:      # and matches correct number and pin
+                    print('\nYou have successfully logged in!\n')
+                    Banking_System.current_user = account
+                    self.account()
+                else:
+                    print('\nWrong card number or PIN!\n')
             else:
                 print('\nWrong card number or PIN!\n')
             
@@ -49,18 +62,20 @@ class Banking_System:
             choice = input()
 
             if choice == '1':
-                print(f'\nBalance: {self.balance}\n')
+                print(f"\nBalance: {Banking_System.accounts[Banking_System.current_user]['Balance']}\n")
             elif choice == '2':
+                Banking_System.current_user = ""
                 print('\nYou have successfully logged out!\n')
                 break
             elif choice == '0':
                 print('\nBye!')
                 sys.exit()
             else:
-                print('Please enter either 1, 2, or 0 to exit.')
+                print('\nPlease enter either 1, 2, or 0 to exit.\n')
 
-banking_system = Banking_System()
+banking_system = Banking_System()       # Instance of Banking_System
 
+# Main Loop
 while True:
     print('1. Create an account')
     print('2. Log into account')
