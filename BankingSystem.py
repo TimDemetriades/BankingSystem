@@ -19,8 +19,8 @@ class Banking_System:
         user_data = {}  # dict to insert into accounts
 
         self.account_identifier = str(randint_with_n_digits(9))      
-        checksum = str(randint_with_n_digits(1))
-        card_number = str(self.BIN) + self.account_identifier + checksum
+        card_number = str(self.BIN) + self.account_identifier
+        card_number = card_number + self.calc_checksum(card_number)
         card_PIN =  str(randint_with_n_digits(4))
 
         user_data[self.account_identifier] = {
@@ -34,7 +34,24 @@ class Banking_System:
         print('\nYour card has been created')
         print(f'Your card number:\n{card_number}')
         print(f'Your card PIN:\n{card_PIN}\n')
-    
+
+    def calc_checksum(self, card_number):
+        # using luhn algorithm
+        sum = 0
+
+        for counter, digit in enumerate(card_number, 1):        # start counter at 1
+            n = int(digit)                                      # convert string to int
+            if counter % 2  == 1 and n * 2 > 9:                 # if counter is odd and over 9 after doubling
+                sum += n * 2 - 9
+            elif counter % 2 == 1:                              # if counter is odd and less than 9
+                sum += n * 2
+            else:                                               # if counter is even
+                sum += n
+
+        if sum % 10 == 0:
+            return str(0)                                       # checksum is 0
+        else:
+            return str(10 - sum % 10)                           # checksum is remainder to next number divisible by 10
     def log_into_account(self):
         if Banking_System.accounts == {}:       # if no accounts have been made yet
             print('\nYou must create an account first.\n')
