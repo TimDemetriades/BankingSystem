@@ -97,9 +97,9 @@ class BankingSystem:
             choice = input()
 
             if choice == '1':
-                cursor.execute('SELECT balance FROM card WHERE id = ?', BankingSystem.current_user)
-                balance = cursor.fetchall()
-                print(f"\nBalance: {balance}\n")
+                cursor.execute('SELECT balance FROM card WHERE id = ?', (BankingSystem.current_user,))
+                balance = cursor.fetchone()
+                print(f"\nBalance: {balance[0]}\n")
             elif choice == '2':
                 BankingSystem.current_user = ""
                 print('\nYou have successfully logged out!\n')
