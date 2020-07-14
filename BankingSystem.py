@@ -3,28 +3,19 @@
 # Date: 06/30/2020
 
 from random import randint
-import sqlite3   
 import sys
 
+import database
 
-# define connection and cursor
-connection = sqlite3.connect('card.s3db')   # cards database
-cursor = connection.cursor()
 
-# create table query
-create_card_table = '''CREATE TABLE IF NOT EXISTS 
-    card (
-    id INTEGER,
-    number TEXT,
-    pin TEXT,
-    balance INTEGER DEFAULT 0
-    );'''
+# Create the card table if not already created
+database.create_card_table()
 
-# execute query
-cursor.execute(create_card_table)
+# Show all rows in card table
+# database.show_all_entries('card')
 
-# commit changes
-connection.commit()
+# Remove all entries from card table
+# database.delete_all_entries('card')
 
 
 class BankingSystem:
@@ -38,15 +29,11 @@ class BankingSystem:
         self.card_PIN =  str(randint_with_n_digits(4))
         self.balance = 0
 
-        self.insert_into_card_table(self.account_identifier, self.card_number, self.card_PIN, self.balance)     # insert into db
+        database.insert_into_card_table(self.account_identifier, self.card_number, self.card_PIN, self.balance)     # insert new card into db
 
         print('\nYour card has been created')
         print(f'Your card number:\n{self.card_number}')
         print(f'Your card PIN:\n{self.card_PIN}\n')
-
-    def insert_into_card_table(self, id, number, pin, balance):
-        cursor.execute('INSERT INTO card VALUES (?, ?, ?, ?)',(id, number, pin, balance))   # need to use this format with ?
-        connection.commit()
 
     def calc_checksum(self, card_number):
         # using luhn algorithm
@@ -67,9 +54,8 @@ class BankingSystem:
             return str(10 - sum % 10)                           # checksum is remainder to next number divisible by 10
 
     def log_into_account(self):
-        cursor.execute('SELECT COUNT(id) FROM card')
-        num_of_cards = cursor.fetchall()
-        if num_of_cards == [(0,)]:
+        num_of_cards = database.check_if_cards_is_empty()
+        if num_of_cards[0] == 0:
             print('\nYou must create an account first.\n')
         else:
             entered_card = input('\nEnter your card number:\n')
@@ -77,8 +63,7 @@ class BankingSystem:
 
             account = entered_card[6:15]    # this should match the account_identifier of a card number (digits 6 to 14) and also the id column
 
-            cursor.execute('SELECT number, pin FROM card WHERE id = ?', (account,))
-            records = cursor.fetchall()
+            records = database.check_card_and_pin(account)
             if records != []:
                 if records[0][0] == entered_card and records[0][1] == entered_PIN:
                     print('\nYou have successfully logged in!\n')
@@ -97,8 +82,7 @@ class BankingSystem:
             choice = input()
 
             if choice == '1':
-                cursor.execute('SELECT balance FROM card WHERE id = ?', (BankingSystem.current_user,))
-                balance = cursor.fetchone()
+                balance = database.get_balance(BankingSystem.current_user)
                 print(f"\nBalance: {balance[0]}\n")
             elif choice == '2':
                 BankingSystem.current_user = ""
