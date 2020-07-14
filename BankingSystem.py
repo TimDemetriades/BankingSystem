@@ -11,12 +11,17 @@ import database
 # Create the card table if not already created
 database.create_card_table()
 
+# Functions for testing
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # Show all rows in card table
 # database.show_all_entries('card')
 
 # Remove all entries from card table
 # database.delete_all_entries('card')
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
+# Banking System Class
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 class BankingSystem:
     current_user = ""   # holds account_identifier after user logs in    
@@ -64,7 +69,7 @@ class BankingSystem:
             account = entered_card[6:15]    # this should match the account_identifier of a card number (digits 6 to 14) and also the id column
 
             records = database.check_card_and_pin(account)
-            if records != []:
+            if records:     # check if list is not empty
                 if records[0][0] == entered_card and records[0][1] == entered_PIN:
                     print('\nYou have successfully logged in!\n')
                     BankingSystem.current_user = account
@@ -77,7 +82,10 @@ class BankingSystem:
     def account(self):
         while True:
             print('1. Balance')
-            print('2. Log out')
+            print('2. Add income')
+            print('3. Do transfer')
+            print('4. Close Account')
+            print('5. Log out')
             print('0. Exit')
             choice = input()
 
@@ -85,6 +93,16 @@ class BankingSystem:
                 balance = database.get_balance(BankingSystem.current_user)
                 print(f"\nBalance: {balance[0]}\n")
             elif choice == '2':
+                print('\nEnter income: ')
+                self.add_income()
+            elif choice == '3':
+                print('\nTransfer')
+                print('Enter card number:')
+                self.do_transfer()
+            elif choice == '4':
+                self.close_account()
+                break
+            elif choice == '5':
                 BankingSystem.current_user = ""
                 print('\nYou have successfully logged out!\n')
                 break
@@ -94,13 +112,55 @@ class BankingSystem:
             else:
                 print('\nPlease enter either 1, 2, or 0 to exit.\n')
 
+    def add_income(self):
+        try:
+            income = float(input())
+        except ValueError:
+            print('Please enter a valid number!\n')
+        else:
+            if income <= 0:
+                print('Please enter a number greater than 0.\n')
+            else:
+                database.add_income_to_db(BankingSystem.current_user, income)
+                print('Income was added!\n')
 
+    def do_transfer(self):
+        transfer_to = input()
+        if self.calc_checksum(transfer_to[:-1]) != transfer_to[-1]:             # checking card entered against luhn algorithm
+            print('Probably you made mistake in the card number. Please try again!\n')
+        else:
+            check = database.transfer_check(BankingSystem.current_user, transfer_to)    # check if card exists and is not same as current user
+            if check == 0:
+                print('Enter how much money you want to transfer:')
+                try:
+                    transfer_amount = float(input())
+                except ValueError:
+                    print('Please enter a valid number!\n')
+                else:
+                    if transfer_amount <= 0:
+                        print('Please enter a number greater than 0.\n')
+                    else:
+                        database.do_transfer_db(BankingSystem.current_user, transfer_to, transfer_amount)
+            else:
+                return None
+
+    def close_account(self):
+        database.close_account_db(BankingSystem.current_user)
+        print('\nThe account has been closed!\n')
+        BankingSystem.current_user = ""
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+
+# Function to gererate random integer given number of digits
 def randint_with_n_digits(n):
     range_start = 10 ** (n - 1)
     range_end = (10 ** n) - 1
     return randint(range_start, range_end)
 
-banking_system = BankingSystem()       # Instance of BankingSystem
+
+# Instance of BankingSystem
+banking_system = BankingSystem()       
+
 
 # Main Loop
 while True:
