@@ -39,7 +39,7 @@ def check_if_cards_is_empty():
     connection = sqlite3.connect('card.s3db')   
     cursor = connection.cursor()
     cursor.execute('SELECT COUNT(id) FROM card')
-    num_of_cards = cursor.fetchall()
+    num_of_cards = cursor.fetchone()
     connection.close()
     return num_of_cards
 
@@ -47,7 +47,7 @@ def check_if_cards_is_empty():
 def check_card_and_pin(account):
     connection = sqlite3.connect('card.s3db') 
     cursor = connection.cursor()
-    cursor.execute('SELECT number, pin FROM card WHERE id = ?', (account,))
+    cursor.execute('SELECT number, pin FROM card WHERE id = ?', (account,))     # account is digits 6-15 of entered card (value in id column)
     records = cursor.fetchall()
     connection.close()
     return records
@@ -109,6 +109,7 @@ def close_account_db(user):
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
+#Functions for testing
 # Display all entries in given table
 def show_all_entries(table):
     connection = sqlite3.connect('card.s3db')   
